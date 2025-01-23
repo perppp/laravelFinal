@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AssignRoleRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -18,10 +19,11 @@ class AdminController extends Controller
         return response()->json($users);
     }
 
-    public function assignRole(Request $request, $userId)
+    public function assignRole(AssignRoleRequest $request, $userId)
     {
+        $validated = $request->validated();
         $user = User::findOrFail($userId);
-        $user->roles()->sync($request->role_ids);
+        $user->roles()->sync($validated['role_ids']);
         return response()->json(['message' => 'Role(s) assigned successfully']);
     }
 

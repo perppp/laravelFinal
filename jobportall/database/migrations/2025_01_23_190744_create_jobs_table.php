@@ -9,10 +9,13 @@ class CreateJobsTable extends Migration
     public function up()
     {
         Schema::create('jobs', function (Blueprint $table) {
-            $table->id();  // This creates an auto-incrementing primary key with unsignedBigInteger type
+            $table->id();
             $table->string('title');
             $table->text('description');
+            $table->unsignedBigInteger('category_id')->nullable();
             $table->timestamps();
+            
+            $table->foreign('category_id')->references('id')->on('categories')->onDelete('set null');
         });
     }
 

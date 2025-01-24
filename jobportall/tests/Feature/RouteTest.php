@@ -3,9 +3,14 @@
 namespace Tests\Feature;
 
 use Tests\TestCase;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class RouteTest extends TestCase
 {
+    use RefreshDatabase;
+
     /** @test */
     public function it_tests_a_public_route()
     {
@@ -16,18 +21,45 @@ class RouteTest extends TestCase
     /** @test */
     public function it_tests_a_protected_route_for_employers()
     {
-        // Obtain a valid token here, either from a login method or a predefined token
-        $token = 'some-valid-token'; // Replace with actual token generation logic
+        $user = User::factory()->create([
+            'email' => 'employer@example.com',
+            'password' => Hash::make('password123'),
+        ]);
+
+        // Generate Sanctum token
+        $token = $user->createToken('TestToken')->plainTextToken;
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer ' . $token
-        ])->post('/api/employer/post-job', [
+        ])->postJson('/api/employer/post-job', [
             'title' => 'New Job Posting',
             'description' => 'Looking for an experienced Laravel developer.',
             'salary' => 60000,
         ]);
 
         $response->assertStatus(201);
+
+        $response->assertJson([
+            'title' => 'New Job Posting',
+            'salary' => 60000
+        ]);
+    }
+
+    /** @test */
+    public function it_tests_a_protected_route_for_job_seekers()
+    {
+        $user = User::factory()->create([
+            'email' => 'jobseeker@example.com',
+            'password' => Hash::make('password123'),
+        ]);
+
+        $token = $user->createToken('TestToken')->plainTextToken;
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer ' . $token
+        ])->getJson('/api/job-seeker/jobs');
+
+        $response->assertStatus(200);
     }
 
     /** @test */
@@ -35,5 +67,12 @@ class RouteTest extends TestCase
     {
         $response = $this->get('/api/invalid-route');
         $response->assertStatus(404);
+    }
+
+    /** @test */
+    public function it_returns_a_successful_response_on_home()
+    {
+        $response = $this->get('/');
+        $response->assertStatus(200);
     }
 }

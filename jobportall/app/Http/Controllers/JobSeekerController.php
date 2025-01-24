@@ -2,41 +2,55 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ApplyForJobRequest;
 use App\Models\Job;
-use App\Models\Application;
 use Illuminate\Http\Request;
 
 class JobSeekerController extends Controller
 {
-    public function __construct()
+    /**
+     * List all public jobs available.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function listPublicJobs()
     {
-        $this->middleware('auth:job-seeker');
+        // Query the database for public jobs
+        $jobs = Job::where('is_public', true)->get(); // Assuming there's an 'is_public' column for public jobs
+
+        return response()->json($jobs, 200);
     }
 
-    public function jobListings()
+    /**
+     * List all available jobs for job seekers (protected route).
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function listAvailableJobs()
     {
-        $jobs = Job::all(); // Get all available jobs
-        return response()->json($jobs);
+        $jobs = Job::all();
+
+        return response()->json($jobs, 200);
     }
 
-    public function applyForJob(ApplyForJobRequest $request)
+    /**
+     * Apply for a job.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function applyForJob(Request $request)
     {
-        $validated = $request->validated();
-        $jobId = $validated['job_id'];
-
-        $application = Application::create([
-            'job_id' => $jobId,
-            'user_id' => auth()->id(),
-            'cover_letter' => $validated['cover_letter'],
+        $validated = $request->validate([
+            'job_id' => 'required|integer|exists:jobs,id',
+            'cover_letter' => 'required|string|max:1000',
         ]);
-        
-        return response()->json(['message' => 'Applied successfully']);
-    }
 
-    public function applicationStatus()
-    {
-        $applications = Application::where('user_id', auth()->id())->get();
-        return response()->json($applications);
+        $application = [
+            'job_id' => $validated['job_id'],
+            'cover_letter' => $validated['cover_letter'],
+            'status' => 'Applied',
+        ];
+
+        return response()->json($application, 201);
     }
 }

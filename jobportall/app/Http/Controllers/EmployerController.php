@@ -2,47 +2,59 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\PostJobRequest;
-use App\Http\Requests\UpdateApplicationStatusRequest;
 use App\Models\Job;
-use App\Models\Application;
+use App\Models\Application; // Assuming you have an Application model for job applications
 use Illuminate\Http\Request;
 
 class EmployerController extends Controller
 {
-    public function __construct()
+    /**
+     * List all jobs posted by the employer.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function listJobs()
     {
-        $this->middleware('auth:employer');
+        $jobs = Job::where('user_id', auth()->id())->get();
+
+        return response()->json($jobs, 200);
     }
 
-    public function postJob(PostJobRequest $request)
+    /**
+     * Post a new job for employers.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function postJob(Request $request)
     {
-        $validated = $request->validated();
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string|max:1000',
+            'salary' => 'required|numeric',
+        ]);
 
-        $job = Job::create($validated);
-        return response()->json($job);
+        $job = Job::create([
+            'title' => $validated['title'],
+            'description' => $validated['description'],
+            'salary' => $validated['salary'],
+            'user_id' => auth()->id(),
+        ]);
+
+        return response()->json($job, 201); // Created
     }
 
-    public function jobListings()
+    /**
+     * View all applications for posted jobs.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function viewApplications()
     {
-        $jobs = Job::where('employer_id', auth()->id())->get();
-        return response()->json($jobs);
-    }
+        $applications = Application::whereHas('job', function($query) {
+            $query->where('user_id', auth()->id());
+        })->get();
 
-    public function manageApplications($jobId)
-    {
-        $applications = Application::where('job_id', $jobId)->get();
-        return response()->json($applications);
-    }
-
-    public function updateApplicationStatus(UpdateApplicationStatusRequest $request, $applicationId)
-    {
-        $validated = $request->validated();
-
-        $application = Application::findOrFail($applicationId);
-        $application->status = $validated['status'];
-        $application->save();
-
-        return response()->json(['message' => 'Application status updated']);
+        return response()->json($applications, 200);
     }
 }

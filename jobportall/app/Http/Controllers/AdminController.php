@@ -1,55 +1,64 @@
 <?php
 
+
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Http\Requests\AssignRoleRequest;
+use App\Models\Job;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 
 class AdminController extends Controller
 {
-    public function __construct()
+    public function dashboard()
     {
-        $this->middleware('auth:sanctum');
+        return view('admin.dashboard');
     }
 
-    public function listUsers()
+    public function listJobs()
     {
-        $users = User::all();
-        return response()->json($users);
+        $jobs = Job::all();
+        return view('admin.jobs', compact('jobs'));
     }
 
-    public function createUser(Request $request)
+    public function createJob()
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8|confirmed',
+        return view('admin.create-job');
+    }
+
+    public function storeJob(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'category_id' => 'required|integer',
         ]);
 
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
+        Job::create($request->all());
+
+        return redirect()->route('admin.jobs')->with('success', 'Job created successfully!');
+    }
+
+    public function editJob(Job $job)
+    {
+        return view('admin.edit-job', compact('job'));
+    }
+
+    public function updateJob(Request $request, Job $job)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'category_id' => 'required|integer',
         ]);
 
-        return response()->json(['message' => 'User created successfully', 'user' => $user], 201);
+        $job->update($request->all());
+
+        return redirect()->route('admin.jobs')->with('success', 'Job updated successfully!');
     }
 
-    public function assignRole(AssignRoleRequest $request, $userId)
+    public function deleteJob(Job $job)
     {
-        $validated = $request->validated();
-        $user = User::findOrFail($userId);
-        $user->roles()->sync($validated['role_ids']);
-        return response()->json(['message' => 'Role(s) assigned successfully']);
-    }
+        $job->delete();
 
-    public function deleteUser($userId)
-    {
-        $user = User::findOrFail($userId);
-        $user->delete();
-        return response()->json(['message' => 'User deleted successfully']);
+        return redirect()->route('admin.jobs')->with('success', 'Job deleted successfully!');
     }
 }

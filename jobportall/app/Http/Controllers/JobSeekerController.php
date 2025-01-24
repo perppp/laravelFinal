@@ -3,62 +3,41 @@
 namespace App\Http\Controllers;
 
 use App\Models\Job;
+use App\Models\Application;
 use Illuminate\Http\Request;
 
 class JobSeekerController extends Controller
 {
-    /**
-     * List all public jobs available.
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function listPublicJobs()
-    {
-        return response()->json([
-            [
-                'title' => 'Sample Job 1',
-                'description' => 'Job description goes here',
-                'salary' => 50000,
-            ],
-            [
-                'title' => 'Sample Job 2',
-                'description' => 'Job description goes here',
-                'salary' => 60000,
-            ]
-        ]);
-    }
-
-    /**
-     * List all available jobs for job seekers (protected route).
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function listAvailableJobs()
     {
         $jobs = Job::all();
-
-        return response()->json($jobs, 200);
+        return view('jobseeker.jobs', compact('jobs'));
     }
 
-    /**
-     * Apply for a job.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function applyForJob(Request $request)
+    public function showApplyJobForm(Job $job)
     {
-        $validated = $request->validate([
-            'job_id' => 'required|integer|exists:jobs,id',
-            'cover_letter' => 'required|string|max:1000',
+        return view('jobseeker.apply-job', compact('job'));
+    }
+
+    public function applyForJob(Request $request, Job $job)
+    {
+        $request->validate([
+            'cover_letter' => 'required|string',
         ]);
 
-        $application = [
-            'job_id' => $validated['job_id'],
-            'cover_letter' => $validated['cover_letter'],
-            'status' => 'Applied',
-        ];
+        Application::create([
+            'job_id' => $job->id,
+            'user_id' => auth()->user()->id,
+            'cover_letter' => $request->cover_letter,
+            'status' => 'pending',
+        ]);
 
-        return response()->json($application, 201);
+        return redirect()->route('jobseeker.jobs')->with('success', 'Application submitted successfully.');
+    }
+
+    public function viewMyApplications()
+    {
+        $applications = Application::where('user_id', auth()->user()->id)->get();
+        return view('jobseeker.my-applications', compact('applications'));
     }
 }

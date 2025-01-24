@@ -30,7 +30,7 @@ class EmployerController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'description' => 'required|string|max:1000',
+            'description' => 'required|string',
             'salary' => 'required|numeric',
         ]);
 
@@ -38,10 +38,10 @@ class EmployerController extends Controller
             'title' => $validated['title'],
             'description' => $validated['description'],
             'salary' => $validated['salary'],
-            'user_id' => auth()->id(),
+            'user_id' => auth()->user()->id,
         ]);
 
-        return response()->json($job, 201); // Created
+        return response()->json($job, 201);
     }
 
     /**

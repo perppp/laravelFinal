@@ -14,10 +14,18 @@ class JobSeekerController extends Controller
      */
     public function listPublicJobs()
     {
-        // Query the database for public jobs
-        $jobs = Job::where('is_public', true)->get(); // Assuming there's an 'is_public' column for public jobs
-
-        return response()->json($jobs, 200);
+        return response()->json([
+            [
+                'title' => 'Sample Job 1',
+                'description' => 'Job description goes here',
+                'salary' => 50000,
+            ],
+            [
+                'title' => 'Sample Job 2',
+                'description' => 'Job description goes here',
+                'salary' => 60000,
+            ]
+        ]);
     }
 
     /**

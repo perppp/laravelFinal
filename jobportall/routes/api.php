@@ -6,6 +6,8 @@ use App\Http\Controllers\JobSeekerController;
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('public-jobs', [JobSeekerController::class, 'listPublicJobs']);
+
 Route::post('login', [AuthController::class, 'login']);
 Route::post('register', [AuthController::class, 'register']);
 
@@ -24,5 +26,3 @@ Route::prefix('job-seeker')->middleware('auth:sanctum')->group(function () {
     Route::get('jobs', [JobSeekerController::class, 'listAvailableJobs']);
     Route::post('apply-job', [JobSeekerController::class, 'applyForJob']);
 });
-
-Route::get('public-jobs', [JobSeekerController::class, 'listPublicJobs']);

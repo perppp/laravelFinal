@@ -3,6 +3,9 @@
 @section('content')
     <div class="container">
         <h1>Job Listings</h1>
+
+        <a href="{{ route('admin.dashboard') }}" class="btn btn-secondary mb-3">Back to Dashboard</a>
+
         <a href="{{ route('admin.create-job') }}" class="btn btn-primary">Post New Job</a>
 
         <table class="table">
@@ -15,25 +18,21 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($jobs as $job)
+                @foreach($jobs as $job)
                     <tr>
                         <td>{{ $job->title }}</td>
-                        <td>{{ $job->category->name ?? 'Uncategorized' }}</td>
-                        <td>{{ $job->employer->name ?? 'Unknown Employer' }}</td>
+                        <td>{{ $job->category->name }}</td>
+                        <td>{{ $job->user->name }}</td> <!-- Assuming 'user' is the employer -->
                         <td>
                             <a href="{{ route('admin.edit-job', $job->id) }}" class="btn btn-warning">Edit</a>
                             <form action="{{ route('admin.delete-job', $job->id) }}" method="POST" style="display:inline;">
                                 @csrf
-                                @method('POST')
+                                @method('DELETE')
                                 <button type="submit" class="btn btn-danger">Delete</button>
                             </form>
                         </td>
                     </tr>
-                @empty
-                    <tr>
-                        <td colspan="4">No jobs available.</td>
-                    </tr>
-                @endforelse
+                @endforeach
             </tbody>
         </table>
     </div>

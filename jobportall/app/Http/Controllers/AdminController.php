@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Http\Controllers;
 
 use App\Models\Job;
@@ -8,11 +7,6 @@ use Illuminate\Http\Request;
 
 class AdminController extends Controller
 {
-    public function dashboard()
-    {
-        return view('admin.dashboard');
-    }
-
     public function listJobs()
     {
         $jobs = Job::all();
@@ -39,7 +33,7 @@ class AdminController extends Controller
 
     public function editJob(Job $job)
     {
-        return view('admin.edit-job', compact('job'));
+        return view('admin.edit-job', compact('job')); // Pass the job to the edit view
     }
 
     public function updateJob(Request $request, Job $job)
@@ -50,7 +44,7 @@ class AdminController extends Controller
             'category_id' => 'required|integer',
         ]);
 
-        $job->update($request->all());
+        $job->update($request->all()); // Update the job with new data
 
         return redirect()->route('admin.jobs')->with('success', 'Job updated successfully!');
     }

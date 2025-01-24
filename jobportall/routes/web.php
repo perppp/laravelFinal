@@ -7,7 +7,7 @@ use App\Http\Controllers\JobSeekerController;
 use App\Models\Job;
 
 Route::get('/', function () {
-    $jobs = Job::all(); // Fetch all jobs from the database
+    $jobs = Job::all();
     return view('jobseeker.jobs', compact('jobs'));
 });
 
@@ -22,14 +22,12 @@ Route::prefix('admin')->group(function () {
     Route::post('jobs/delete/{job}', [AdminController::class, 'deleteJob'])->name('admin.delete-job'); // Handle job deletion
 });
 
-// Employer routes for Blade views
 Route::prefix('employer')->group(function () {
     Route::get('jobs', [EmployerController::class, 'listJobs'])->name('employer.jobs'); // Show employer's job listings
     Route::get('post-job', [EmployerController::class, 'createJob'])->name('employer.post-job'); // Show create job form
     Route::post('store-job', [EmployerController::class, 'storeJob'])->name('employer.store-job'); // Handle job creation
 });
 
-// Job Seeker routes for Blade views
 Route::prefix('jobseeker')->group(function () {
     Route::get('jobs', [JobSeekerController::class, 'listAvailableJobs'])->name('jobseeker.jobs'); // Show available jobs
     Route::get('apply-job/{job}', [JobSeekerController::class, 'showApplyJobForm'])->name('jobseeker.apply-job'); // Show job application form

@@ -31,8 +31,8 @@ Route::post('/register', [AuthController::class, 'register'])->name('register.po
 // Logout route
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// Admin routes
-Route::prefix('admin')->middleware('auth', 'is_admin')->group(function () {
+// Admin routes with middleware to check if the user is authenticated and is an admin
+Route::prefix('admin')->middleware(['auth', 'is_admin'])->group(function () {
     Route::get('dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
     Route::get('jobs', [AdminController::class, 'listJobs'])->name('admin.jobs');
     Route::get('jobs/create', [AdminController::class, 'createJob'])->name('admin.create-job');
@@ -42,14 +42,14 @@ Route::prefix('admin')->middleware('auth', 'is_admin')->group(function () {
     Route::post('jobs/delete/{job}', [AdminController::class, 'deleteJob'])->name('admin.delete-job');
 });
 
-// Employer routes
+// Employer routes with middleware to check if the user is authenticated
 Route::prefix('employer')->middleware('auth')->group(function () {
     Route::get('jobs', [EmployerController::class, 'listJobs'])->name('employer.jobs');
     Route::get('post-job', [EmployerController::class, 'createJob'])->name('employer.post-job');
     Route::post('store-job', [EmployerController::class, 'storeJob'])->name('employer.store-job');
 });
 
-// Jobseeker routes
+// Jobseeker routes with middleware to check if the user is authenticated
 Route::prefix('jobseeker')->middleware('auth')->group(function () {
     Route::get('jobs', [JobSeekerController::class, 'listAvailableJobs'])->name('jobseeker.jobs');
     Route::get('apply-job/{job}', [JobSeekerController::class, 'showApplyJobForm'])->name('jobseeker.apply-job');

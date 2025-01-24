@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\RegisterUserRequest;
-use App\Http\Requests\LoginRequest;
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
@@ -17,26 +15,29 @@ class AuthController extends Controller
 
         if (Auth::attempt(['email' => $validated['email'], 'password' => $validated['password']])) {
             $user = Auth::user();
-            $token = $user->createToken('job-portal-token')->accessToken;
-            return response()->json(['token' => $token]);
+            return redirect()->route($user->is_admin ? 'admin.dashboard' : 'jobseeker.jobs');
         }
 
-        return response()->json(['error' => 'Unauthorized'], 401);
+        return redirect()->route('login')->withErrors(['error' => 'Unauthorized']);
     }
 
-    public function register(RegisterUserRequest $request)
+    public function register(Request $request)
     {
-        $validated = $request->validated();
-
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
         ]);
 
-        $token = $user->createToken('job-portal-token')->accessToken;
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+        ]);
 
-        return response()->json(['token' => $token]);
+        Auth::login($user);
+
+        return redirect()->route($user->is_admin ? 'admin.dashboard' : 'jobseeker.jobs');
     }
 
     public function logout(Request $request)
